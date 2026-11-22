@@ -12,8 +12,13 @@ APP_DIR="$DATA_DIR/applications"
 LOCALE_DIR="$DATA_DIR/locale"
 DOMAIN=tmux-monitor
 
+CONF_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/tmux-monitor"
+
 if [[ ${1:-} == --uninstall ]]; then
-    rm -fv "$BIN_DIR/tmux-monitor" "$APP_DIR/tmux-monitor.desktop"
+    rm -fv "$BIN_DIR/tmux-monitor" "$BIN_DIR/tmux-monitor-archive" \
+        "$APP_DIR/tmux-monitor.desktop" "$CONF_DIR/archive.tmux"
+    echo "note: the session archive itself is kept: $(./tmux_monitor_archive.py dir)"
+    echo "note: remove the source-file line for archive.tmux from your tmux.conf"
     rm -fv "$LOCALE_DIR"/*/LC_MESSAGES/$DOMAIN.mo
     command -v update-desktop-database >/dev/null && update-desktop-database "$APP_DIR" || true
     echo "tmux-monitor removed."
@@ -26,8 +31,13 @@ python3 -c 'import PyQt6.QtWidgets' 2>/dev/null \
 command -v tmux >/dev/null || echo "WARNING: tmux not found"
 command -v nvidia-smi >/dev/null || echo "note: nvidia-smi not found, GPU panel will be hidden"
 
-# --- program
+# --- programs
 install -Dm755 tmux_monitor.py "$BIN_DIR/tmux-monitor"
+install -Dm755 tmux_monitor_archive.py "$BIN_DIR/tmux-monitor-archive"
+
+# --- session archive: tmux snippet (your tmux.conf is not touched)
+mkdir -p "$CONF_DIR"
+"$BIN_DIR/tmux-monitor-archive" hook-conf --exe "$BIN_DIR/tmux-monitor-archive" > "$CONF_DIR/archive.tmux"
 
 # --- translations
 if command -v msgfmt >/dev/null; then
@@ -41,7 +51,13 @@ mkdir -p "$APP_DIR"
 sed "s|^Exec=.*|Exec=$BIN_DIR/tmux-monitor|" tmux-monitor.desktop > "$APP_DIR/tmux-monitor.desktop"
 command -v update-desktop-database >/dev/null && update-desktop-database "$APP_DIR" || true
 
-echo "Installed: $BIN_DIR/tmux-monitor"
+echo "Installed: $BIN_DIR/tmux-monitor, $BIN_DIR/tmux-monitor-archive"
+if ! grep -qs "tmux-monitor/archive.tmux" "$HOME/.tmux.conf" "${XDG_CONFIG_HOME:-$HOME/.config}/tmux/tmux.conf"; then
+    echo
+    echo "To enable the session archive, add this line to your tmux.conf:"
+    echo "    source-file -q $CONF_DIR/archive.tmux"
+    echo "and reload it:  tmux source-file ~/.tmux.conf   (or ~/.config/tmux/tmux.conf)"
+fi
 case ":$PATH:" in
     *":$BIN_DIR:"*) ;;
     *) echo "note: $BIN_DIR is not in your PATH" ;;

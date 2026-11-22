@@ -18,13 +18,16 @@ TTS, …) that run detached in tmux.
   `konsole` → `gnome-terminal` → `xterm`
 - GPU name, temperature, utilisation, VRAM and VRAM peak (via `nvidia-smi`);
   the GPU panel is hidden automatically when there is no NVIDIA GPU
+- Attach/Detach button and "End session…" (with confirmation)
+- Optional session archive: output of ended sessions stays readable
+  (see below; needs tmux 3.2+)
 - "Always on top" toggle
 - English and German UI (gettext), follows the system locale
 
 ## Requirements
 
 | Package | Arch Linux | Debian / Ubuntu | |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Python 3.8+ with PyQt6 | `python-pyqt6` | `python3-pyqt6` | required |
 | tmux | `tmux` | `tmux` | required |
 | nvidia-smi | `nvidia-utils` | `nvidia-utils-<version>` | optional (GPU panel) |
@@ -75,6 +78,38 @@ tmux new-session -d -s render 'blender -b scene.blend -a'
 for terminals that need something else (`gnome-terminal --`, `kitty`,
 `wezterm start --`). If `$TERMINAL` already ends with `-e`, `-x` or `--`,
 nothing is added.
+
+## Session archive (optional)
+
+`tmux-monitor-archive` keeps the output of every tmux pane after the session
+has ended, e.g. to find out later why an overnight install failed.
+
+A tmux hook (`pipe-pane`) writes each pane's raw output to
+`~/.local/state/tmux-monitor/archive/` (override with `$TMUX_MONITOR_ARCHIVE`).
+Files are created with mode `600`. Enable it by adding one line to your
+`tmux.conf` (`install.sh` prints it):
+
+```tmux
+source-file -q ~/.config/tmux-monitor/archive.tmux
+```
+
+Only panes created after enabling are recorded.
+
+```sh
+tmux-monitor-archive list               # all archived panes (--json available)
+tmux-monitor-archive show render        # cleaned text of the latest "render" session
+tmux-monitor-archive show render --tail 50
+tmux-monitor-archive status             # size; recommends compaction above 200 MB
+tmux-monitor-archive compact            # clean + gzip logs of ended sessions
+tmux-monitor-archive compact --older-than 7 --dry-run
+```
+
+`compact` strips escape sequences, collapses progress-bar redraws and
+gzips the result. Running sessions are never touched.
+
+> **Privacy:** the archive contains everything shown in your terminals,
+> possibly including tokens or passwords that were printed. Nothing is
+> deleted automatically; remove files from the archive directory as needed.
 
 ## Translations
 
