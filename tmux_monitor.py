@@ -525,8 +525,14 @@ class Monitor(QWidget):
                 _("status message", "Failed to start terminal: {error}").format(error=e))
 
     def set_on_top(self, on):
-        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, on)
-        self.show()
+        handle = self.windowHandle()
+        if handle is not None:
+            # Change the flag on the existing native window: recreating it
+            # (QWidget.setWindowFlag) loses the state on KWin/XWayland.
+            handle.setFlag(Qt.WindowType.WindowStaysOnTopHint, on)
+        else:
+            self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, on)
+            self.show()
 
     def check_archive(self):
         st = archive_status() if archive_enabled() else None
@@ -741,6 +747,15 @@ def main():
     args, qt_args = parser.parse_known_args()
     if args.interval <= 0:
         parser.error(_("command line", "--interval must be greater than 0"))
+
+    # Wayland does not let apps keep a window on top (Qt ignores
+    # WindowStaysOnTopHint there). XWayland honours it on KDE and GNOME,
+    # so use it unless the user chose a Qt platform explicitly.
+    if (os.environ.get("XDG_SESSION_TYPE") == "wayland"
+            and os.environ.get("DISPLAY")
+            and not os.environ.get("QT_QPA_PLATFORM")
+            and "-platform" not in qt_args):
+        os.environ["QT_QPA_PLATFORM"] = "xcb"
 
     app = QApplication([sys.argv[0]] + qt_args)
     app.setDesktopFileName(APP_ID)

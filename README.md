@@ -92,6 +92,13 @@ Start a long job so it shows up in the monitor:
 tmux new-session -d -s render 'blender -b scene.blend -a'
 ```
 
+### Wayland
+
+Wayland does not let applications keep their window on top, so on a Wayland
+session tmux Monitor runs through XWayland (`QT_QPA_PLATFORM=xcb`), where
+"Always on top" works on KDE and GNOME. To force native Wayland anyway:
+`QT_QPA_PLATFORM=wayland tmux-monitor`.
+
 ### Terminal
 
 `$TERMINAL` may include arguments. The command is appended with `-e`, except
