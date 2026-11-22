@@ -18,8 +18,8 @@ from pathlib import Path
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import (
     QApplication, QCheckBox, QGridLayout, QGroupBox, QHBoxLayout, QHeaderView,
-    QLabel, QProgressBar, QPushButton, QTableWidget, QTableWidgetItem,
-    QVBoxLayout, QWidget,
+    QLabel, QMessageBox, QProgressBar, QPushButton, QTableWidget,
+    QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
 APP_ID = "tmux-monitor"
@@ -173,7 +173,9 @@ class Monitor(QWidget):
         for i in range(3):
             hdr.setSectionResizeMode(i, QHeaderView.ResizeMode.ResizeToContents)
         hdr.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch)
-        self.table.cellDoubleClicked.connect(self.open_session)
+        self.table.cellDoubleClicked.connect(lambda row, _c: self.attach(row))
+        self.table.itemSelectionChanged.connect(self.update_buttons)
+        self.sessions = []
         self.empty = QLabel(_("sessions", "No tmux sessions."))
         self.empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -181,6 +183,16 @@ class Monitor(QWidget):
         sl = QVBoxLayout(sess_box)
         sl.addWidget(self.table)
         sl.addWidget(self.empty)
+
+        self.attach_btn = QPushButton()
+        self.attach_btn.clicked.connect(self.toggle_attach)
+        self.kill_btn = QPushButton(_("session button", "End session…"))
+        self.kill_btn.clicked.connect(self.kill_session)
+        btns = QHBoxLayout()
+        btns.addWidget(self.attach_btn)
+        btns.addWidget(self.kill_btn)
+        btns.addStretch()
+        sl.addLayout(btns)
 
         # --- GPU
         self.gpu_name = QLabel("–")
@@ -224,6 +236,10 @@ class Monitor(QWidget):
 
     def refresh(self):
         sessions = tmux_sessions()
+        # keep the selection on the same session, even if rows move
+        current = self.selected()
+        self.sessions = sessions
+        self.table.blockSignals(True)
         self.table.setRowCount(len(sessions))
         for row, s in enumerate(sessions):
             status = (_("session status", "attached") if s["attached"]
@@ -233,8 +249,14 @@ class Monitor(QWidget):
                 item = QTableWidgetItem(val)
                 item.setToolTip(val)
                 self.table.setItem(row, col, item)
+        self.table.clearSelection()
+        names = [s["name"] for s in sessions]
+        if current and current["name"] in names:
+            self.table.selectRow(names.index(current["name"]))
+        self.table.blockSignals(False)
         self.table.setVisible(bool(sessions))
         self.empty.setVisible(not sessions)
+        self.update_buttons()
 
         g = gpu_info() if self.has_gpu else None
         self.gpu_box.setVisible(g is not None)
@@ -256,8 +278,50 @@ class Monitor(QWidget):
         self.peak_vram = 0
         self.refresh()
 
-    def open_session(self, row, _col):
-        name = self.table.item(row, 0).text()
+    def selected(self):
+        """Selected session dict, or None."""
+        rows = self.table.selectionModel().selectedRows()
+        if not rows or rows[0].row() >= len(self.sessions):
+            return None
+        return self.sessions[rows[0].row()]
+
+    def update_buttons(self):
+        s = self.selected()
+        self.attach_btn.setEnabled(s is not None)
+        self.kill_btn.setEnabled(s is not None)
+        if s is not None and s["attached"]:
+            self.attach_btn.setText(_("session button", "Detach"))
+            self.attach_btn.setToolTip(
+                _("session button", "Detach all clients; the session keeps running"))
+        else:
+            self.attach_btn.setText(_("session button", "Attach"))
+            self.attach_btn.setToolTip(
+                _("session button", "Open the session in a new terminal window"))
+
+    def toggle_attach(self):
+        s = self.selected()
+        if s is None:
+            return
+        if s["attached"]:
+            run(["tmux", "detach-client", "-s", f"={s['name']}"])
+            self.refresh()
+        else:
+            self.attach(self.sessions.index(s))
+
+    def kill_session(self):
+        s = self.selected()
+        if s is None:
+            return
+        answer = QMessageBox.question(
+            self, _("dialog title", "End session"),
+            _("dialog", "End tmux session “{name}”?\n"
+                        "All programs running in it will be terminated.").format(name=s["name"]))
+        if answer == QMessageBox.StandardButton.Yes:
+            run(["tmux", "kill-session", "-t", f"={s['name']}"])
+            self.refresh()
+
+    def attach(self, row):
+        name = self.sessions[row]["name"]
         if not self.terminal:
             self.status.setText(_("status message", "No terminal found (set $TERMINAL)"))
             return
