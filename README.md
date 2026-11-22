@@ -133,6 +133,35 @@ gzips the result. Running sessions are never touched.
 > possibly including tokens or passwords that were printed. Nothing is
 > deleted automatically; remove files from the archive directory as needed.
 
+## Claude Code plugin
+
+This repository is also a [Claude Code](https://code.claude.com) plugin
+(and its own marketplace). It adds the skill `tmux-monitor`, which makes
+Claude:
+
+- start long jobs (installs, builds, renders, TTS, …) in a named tmux
+  session, so you can watch them in tmux Monitor, and tell you the session
+  name and how to attach;
+- follow the job with `tmux capture-pane` and report the result;
+- read the session archive when it helps (e.g. "why did last night's
+  install fail?"), and suggest compacting it when it grows large.
+
+Install in Claude Code:
+
+```text
+/plugin install tmux-monitor --marketplace <owner>/<repo>
+```
+
+or, on older versions:
+
+```text
+/plugin marketplace add <owner>/<repo>
+/plugin install tmux-monitor@tmux-monitor
+```
+
+Without the plugin system, copy `skills/tmux-monitor/` to
+`~/.claude/skills/tmux-monitor/` to use it in all your Claude Code sessions.
+
 ## Translations
 
 Strings are marked as `_("context", "text")` (xgettext keyword `_:1c,2`).

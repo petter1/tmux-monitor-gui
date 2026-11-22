@@ -1,0 +1,7 @@
+{
+  "name": "tmux-monitor",
+  "displayName": "tmux Monitor",
+  "version": "0.1.0",
+  "description": "Teaches Claude to run long jobs in named tmux sessions (visible in the tmux Monitor desktop app) and to read and compact the tmux session archive.",
+  "keywords": ["tmux", "long-running", "progress", "monitor", "archive"]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "tmux-monitor",
+  "description": "tmux Monitor: Claude Code plugin for long jobs in tmux",
+  "owner": { "name": "tmux-monitor contributors" },
+  "plugins": [
+    {
+      "name": "tmux-monitor",
+      "source": "./",
+      "description": "Run long jobs in named tmux sessions and use the tmux session archive"
+    }
+  ]
+}
