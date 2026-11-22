@@ -1,5 +1,5 @@
 # English translations for tmux-monitor package.
-# Copyright (C) 2026 the tmux-monitor contributors
+# Copyright (C) 2026 petter1
 # This file is distributed under the same license as the tmux-monitor package.
 # Automatically generated, 2026.
 #

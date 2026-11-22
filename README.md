@@ -8,7 +8,6 @@ Handy for keeping an eye on long jobs (installs, renders, model training,
 TTS, …) that run detached in tmux.
 
 ![Screenshot](docs/screenshot.png)
-<!-- TODO: add docs/screenshot.png -->
 
 ## Features
 
@@ -47,8 +46,8 @@ sudo pacman -S --needed python-pyqt6 tmux gettext   # + nvidia-utils if you have
 The `PKGBUILD` builds the package `tmux-monitor-git` from the repository:
 
 ```sh
-git clone https://github.com/<user>/<repo>.git
-cd <repo>
+git clone https://github.com/petter1/tmux-monitor-gui.git
+cd tmux-monitor-gui
 yay -Bi .          # or: makepkg -si
 ```
 
@@ -61,8 +60,8 @@ for your password.
 ### Other distributions (user-local)
 
 ```sh
-git clone https://github.com/<user>/<repo>.git
-cd <repo>
+git clone https://github.com/petter1/tmux-monitor-gui.git
+cd tmux-monitor-gui
 ./install.sh
 ```
 
@@ -150,13 +149,13 @@ Claude:
 Install in Claude Code:
 
 ```text
-/plugin install tmux-monitor --marketplace <owner>/<repo>
+/plugin install tmux-monitor --marketplace petter1/tmux-monitor-gui
 ```
 
 or, on older versions:
 
 ```text
-/plugin marketplace add <owner>/<repo>
+/plugin marketplace add petter1/tmux-monitor-gui
 /plugin install tmux-monitor@tmux-monitor
 ```
 
@@ -174,4 +173,4 @@ msginit -i po/tmux-monitor.pot -l fr -o po/fr.po  # add a language
 
 ## License
 
-TBD
+MIT, see [LICENSE](LICENSE).

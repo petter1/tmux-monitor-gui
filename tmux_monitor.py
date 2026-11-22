@@ -17,7 +17,7 @@ import time
 from pathlib import Path
 
 from PyQt6.QtCore import QLibraryInfo, QLocale, Qt, QTimer, QTranslator, QUrl
-from PyQt6.QtGui import QDesktopServices
+from PyQt6.QtGui import QDesktopServices, QIcon
 from PyQt6.QtWidgets import (
     QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
     QHBoxLayout, QHeaderView, QLabel, QMessageBox, QProgressBar, QPushButton,
@@ -318,7 +318,8 @@ class Monitor(QWidget):
         self.terminal = find_terminal()
         self.has_gpu = shutil.which("nvidia-smi") is not None
         self.setWindowTitle(_("window", "tmux Monitor"))
-        self.resize(640, 360)
+        self.resize(720, 500)
+        self.setWindowIcon(QIcon.fromTheme("utilities-system-monitor"))
         self.peak_vram = 0
 
         # --- Sessions

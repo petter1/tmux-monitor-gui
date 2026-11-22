@@ -1,12 +1,12 @@
-# Maintainer: <name> <email>
+# Maintainer: petter1 <13876117+petter1@users.noreply.github.com>
 pkgname=tmux-monitor-git
 _pkgname=tmux-monitor
 pkgver=r5.5260ea0
 pkgrel=1
 pkgdesc="Desktop window for tmux sessions and NVIDIA GPU usage, with a session archive"
 arch=(any)
-url="https://github.com/<user>/<repo>"
-license=('unknown')  # TODO: set once the license is chosen
+url="https://github.com/petter1/tmux-monitor-gui"
+license=('MIT')
 depends=(python python-pyqt6 tmux)
 makedepends=(git gettext)
 optdepends=('nvidia-utils: GPU panel')
@@ -33,5 +33,6 @@ package() {
     install -Dm755 tmux_monitor_archive.py "$pkgdir/usr/bin/tmux-monitor-archive"
     install -Dm644 tmux-monitor.desktop "$pkgdir/usr/share/applications/tmux-monitor.desktop"
     install -Dm644 README.md "$pkgdir/usr/share/doc/$_pkgname/README.md"
+    install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
     cp -r "$srcdir/locale" "$pkgdir/usr/share/locale"
 }

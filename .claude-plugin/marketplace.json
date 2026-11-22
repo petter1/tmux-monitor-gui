@@ -1,7 +1,7 @@
 {
   "name": "tmux-monitor",
   "description": "tmux Monitor: Claude Code plugin for long jobs in tmux",
-  "owner": { "name": "tmux-monitor contributors" },
+  "owner": { "name": "petter1" },
   "plugins": [
     {
       "name": "tmux-monitor",
