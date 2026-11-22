@@ -113,7 +113,8 @@ def tmux_sessions():
 
 def last_line(session):
     """Last non-empty line of the active pane (shows e.g. progress in %)."""
-    code, out = run(["tmux", "capture-pane", "-p", "-t", f"={session}"])
+    # "=name:" = exactly this session, its active window/pane
+    code, out = run(["tmux", "capture-pane", "-p", "-t", f"={session}:"])
     if code != 0:
         return ""
     # Progress bars overwrite lines with \r: keep only the last part
