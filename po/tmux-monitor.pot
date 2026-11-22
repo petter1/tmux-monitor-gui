@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tmux-monitor\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-22 22:09+0100\n"
+"POT-Creation-Date: 2026-11-22 22:16+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,124 +22,124 @@ msgctxt "window"
 msgid "tmux Monitor"
 msgstr ""
 
-#: tmux_monitor.py:327
+#: tmux_monitor.py:328
 msgctxt "session table header"
 msgid "Session"
 msgstr ""
 
-#: tmux_monitor.py:328
+#: tmux_monitor.py:329
 msgctxt "session table header"
 msgid "Uptime"
 msgstr ""
 
-#: tmux_monitor.py:329
+#: tmux_monitor.py:330
 msgctxt "session table header"
 msgid "Status"
 msgstr ""
 
-#: tmux_monitor.py:330
+#: tmux_monitor.py:331
 msgctxt "session table header"
 msgid "Last output"
 msgstr ""
 
-#: tmux_monitor.py:342
+#: tmux_monitor.py:343
 msgctxt "sessions"
 msgid "No tmux sessions."
 msgstr ""
 
-#: tmux_monitor.py:345
+#: tmux_monitor.py:346
 msgctxt "sessions"
 msgid "tmux sessions (double-click = open in new window)"
 msgstr ""
 
-#: tmux_monitor.py:352
+#: tmux_monitor.py:353
 msgctxt "session button"
 msgid "End session…"
 msgstr ""
 
-#: tmux_monitor.py:364
+#: tmux_monitor.py:365
 msgctxt "gpu"
 msgid "Peak: –"
 msgstr ""
 
-#: tmux_monitor.py:366
+#: tmux_monitor.py:367
 msgctxt "gpu button"
 msgid "Reset peak"
 msgstr ""
 
-#: tmux_monitor.py:369
+#: tmux_monitor.py:370
 msgctxt "gpu"
 msgid "GPU"
 msgstr ""
 
-#: tmux_monitor.py:374
+#: tmux_monitor.py:375
 msgctxt "gpu"
 msgid "Utilisation"
 msgstr ""
 
-#: tmux_monitor.py:376
+#: tmux_monitor.py:377
 msgctxt "gpu"
 msgid "VRAM"
 msgstr ""
 
-#: tmux_monitor.py:382
+#: tmux_monitor.py:383
 msgctxt "footer"
 msgid "Always on top"
 msgstr ""
 
-#: tmux_monitor.py:390
+#: tmux_monitor.py:391
 msgctxt "footer"
 msgid "Settings…"
 msgstr ""
 
-#: tmux_monitor.py:432
+#: tmux_monitor.py:433
 msgctxt "session status"
 msgid "attached"
 msgstr ""
 
-#: tmux_monitor.py:433
+#: tmux_monitor.py:434
 msgctxt "session status"
 msgid "in background"
 msgstr ""
 
-#: tmux_monitor.py:460
+#: tmux_monitor.py:461
 #, python-brace-format
 msgctxt "gpu"
 msgid "Peak: {mib} MiB"
 msgstr ""
 
-#: tmux_monitor.py:462
+#: tmux_monitor.py:463
 #, python-brace-format
 msgctxt "footer"
 msgid "updated {time}"
 msgstr ""
 
-#: tmux_monitor.py:480
+#: tmux_monitor.py:481
 msgctxt "session button"
 msgid "Detach"
 msgstr ""
 
-#: tmux_monitor.py:482
+#: tmux_monitor.py:483
 msgctxt "session button"
 msgid "Detach all clients; the session keeps running"
 msgstr ""
 
-#: tmux_monitor.py:484
+#: tmux_monitor.py:485
 msgctxt "session button"
 msgid "Attach"
 msgstr ""
 
-#: tmux_monitor.py:486
+#: tmux_monitor.py:487
 msgctxt "session button"
 msgid "Open the session in a new terminal window"
 msgstr ""
 
-#: tmux_monitor.py:503
+#: tmux_monitor.py:504
 msgctxt "dialog title"
 msgid "End session"
 msgstr ""
 
-#: tmux_monitor.py:504
+#: tmux_monitor.py:505
 #, python-brace-format
 msgctxt "dialog"
 msgid ""
@@ -147,39 +147,39 @@ msgid ""
 "All programs running in it will be terminated."
 msgstr ""
 
-#: tmux_monitor.py:515
+#: tmux_monitor.py:516
 msgctxt "status message"
 msgid "No terminal found (set $TERMINAL)"
 msgstr ""
 
-#: tmux_monitor.py:524
+#: tmux_monitor.py:525
 #, python-brace-format
 msgctxt "status message"
 msgid "Failed to start terminal: {error}"
 msgstr ""
 
-#: tmux_monitor.py:534
+#: tmux_monitor.py:535
 #, python-brace-format
 msgctxt "footer"
 msgid "Archive: {size} – compact?"
 msgstr ""
 
-#: tmux_monitor.py:549 tmux_monitor.py:645
+#: tmux_monitor.py:550 tmux_monitor.py:647
 msgctxt "dialog title"
 msgid "Settings"
 msgstr ""
 
-#: tmux_monitor.py:554
+#: tmux_monitor.py:555
 msgctxt "settings"
 msgid "Session archive"
 msgstr ""
 
-#: tmux_monitor.py:556
+#: tmux_monitor.py:557
 msgctxt "settings"
 msgid "Archive the output of all tmux sessions"
 msgstr ""
 
-#: tmux_monitor.py:560
+#: tmux_monitor.py:561
 #, python-brace-format
 msgctxt "settings"
 msgid ""
@@ -188,85 +188,85 @@ msgid ""
 "terminals."
 msgstr ""
 
-#: tmux_monitor.py:569
+#: tmux_monitor.py:570
 msgctxt "settings"
 msgid "Compact"
 msgstr ""
 
-#: tmux_monitor.py:571
+#: tmux_monitor.py:572
 msgctxt "settings"
 msgid "Clean and gzip the logs of ended sessions"
 msgstr ""
 
-#: tmux_monitor.py:573
+#: tmux_monitor.py:574
 msgctxt "settings"
 msgid "Open folder"
 msgstr ""
 
-#: tmux_monitor.py:586
+#: tmux_monitor.py:587
 msgctxt "settings"
 msgid "tmux-monitor-archive not found."
 msgstr ""
 
-#: tmux_monitor.py:589
+#: tmux_monitor.py:590
 msgctxt "settings"
 msgid "Start"
 msgstr ""
 
-#: tmux_monitor.py:591
+#: tmux_monitor.py:592
 msgctxt "settings"
 msgid "Start at login"
 msgstr ""
 
-#: tmux_monitor.py:594
+#: tmux_monitor.py:595
 msgctxt "settings"
 msgid "Always on top at startup"
 msgstr ""
 
-#: tmux_monitor.py:602
+#: tmux_monitor.py:603
 msgctxt "settings"
 msgid "Language"
 msgstr ""
 
-#: tmux_monitor.py:606
+#: tmux_monitor.py:607
 msgctxt "settings"
 msgid "System default"
 msgstr ""
 
-#: tmux_monitor.py:610
+#: tmux_monitor.py:611
 msgctxt "settings"
 msgid "Restart now"
 msgstr ""
 
-#: tmux_monitor.py:621
+#: tmux_monitor.py:622
 msgctxt "settings"
 msgid "Installation"
 msgstr ""
 
-#: tmux_monitor.py:626
+#: tmux_monitor.py:627
 #, python-brace-format
 msgctxt "settings"
 msgid "Installed version: {version}"
 msgstr ""
 
-#: tmux_monitor.py:627
+#: tmux_monitor.py:628
 msgctxt "settings"
 msgid "Not installed as a package."
 msgstr ""
 
-#: tmux_monitor.py:628
+#: tmux_monitor.py:629
 msgctxt "settings"
 msgid "Install / update with yay"
 msgstr ""
 
-#: tmux_monitor.py:630
+#: tmux_monitor.py:631
 msgctxt "settings"
 msgid ""
-"Builds the package from this folder in a tmux session and opens it in a "
-"terminal (asks for your password)."
+"Builds the package with this folder's PKGBUILD (latest version from GitHub) "
+"in a tmux session and opens it in a terminal (asks for your password)."
 msgstr ""
 
-#: tmux_monitor.py:662
+#: tmux_monitor.py:664
 #, python-brace-format
 msgctxt "settings"
 msgid ""
@@ -274,43 +274,43 @@ msgid ""
 "{entries} entries ({active} active), raw {raw}, compacted {compacted}"
 msgstr ""
 
-#: tmux_monitor.py:667
+#: tmux_monitor.py:669
 msgctxt "settings"
 msgid "The archive is large – compacting is recommended."
 msgstr ""
 
-#: tmux_monitor.py:675 tmux_monitor.py:689
+#: tmux_monitor.py:677 tmux_monitor.py:691
 msgctxt "dialog title"
 msgid "Session archive"
 msgstr ""
 
-#: tmux_monitor.py:732
+#: tmux_monitor.py:734
 msgctxt "command line"
 msgid "tmux session and GPU monitor (PyQt6)"
 msgstr ""
 
-#: tmux_monitor.py:734
+#: tmux_monitor.py:736
 msgctxt "command line metavar"
 msgid "SEC"
 msgstr ""
 
-#: tmux_monitor.py:735
+#: tmux_monitor.py:737
 #, python-brace-format
 msgctxt "command line"
 msgid "refresh interval in seconds (default: {default})"
 msgstr ""
 
-#: tmux_monitor.py:737
+#: tmux_monitor.py:739
 msgctxt "command line metavar"
 msgid "LANG"
 msgstr ""
 
-#: tmux_monitor.py:738
+#: tmux_monitor.py:740
 msgctxt "command line"
 msgid "UI language, e.g. de or en (default: Settings, else system locale)"
 msgstr ""
 
-#: tmux_monitor.py:741
+#: tmux_monitor.py:743
 msgctxt "command line"
 msgid "--interval must be greater than 0"
 msgstr ""

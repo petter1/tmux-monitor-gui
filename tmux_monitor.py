@@ -628,8 +628,9 @@ class SettingsDialog(QDialog):
                 if installed else _("settings", "Not installed as a package.")))
             ib = QPushButton(_("settings", "Install / update with yay"))
             ib.setToolTip(_("settings",
-                            "Builds the package from this folder in a tmux session "
-                            "and opens it in a terminal (asks for your password)."))
+                            "Builds the package with this folder's PKGBUILD (latest "
+                            "version from GitHub) in a tmux session and opens it in a "
+                            "terminal (asks for your password)."))
             ib.clicked.connect(self.install)
             il.addWidget(ib, alignment=Qt.AlignmentFlag.AlignLeft)
             layout.addWidget(ibox)

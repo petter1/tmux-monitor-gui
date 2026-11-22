@@ -1,0 +1,19 @@
+pkgbase = tmux-monitor-git
+	pkgdesc = Desktop window for tmux sessions and NVIDIA GPU usage, with a session archive
+	pkgver = r5.5260ea0
+	pkgrel = 1
+	url = https://github.com/petter1/tmux-monitor-gui
+	arch = any
+	license = MIT
+	makedepends = git
+	makedepends = gettext
+	depends = python
+	depends = python-pyqt6
+	depends = tmux
+	optdepends = nvidia-utils: GPU panel
+	provides = tmux-monitor
+	conflicts = tmux-monitor
+	source = tmux-monitor::git+file:///home/yanik/Tools/tmux-monitor
+	sha256sums = SKIP
+
+pkgname = tmux-monitor-git

@@ -1,7 +1,7 @@
 # Maintainer: petter1 <13876117+petter1@users.noreply.github.com>
 pkgname=tmux-monitor-git
 _pkgname=tmux-monitor
-pkgver=r5.5260ea0
+pkgver=r11.fbb146f
 pkgrel=1
 pkgdesc="Desktop window for tmux sessions and NVIDIA GPU usage, with a session archive"
 arch=(any)
@@ -12,9 +12,7 @@ makedepends=(git gettext)
 optdepends=('nvidia-utils: GPU panel')
 provides=("$_pkgname")
 conflicts=("$_pkgname")
-# Builds the committed state of this local checkout.
-# For the AUR: source=("$_pkgname::git+$url.git")
-source=("$_pkgname::git+file://$startdir")
+source=("$_pkgname::git+$url.git")
 sha256sums=('SKIP')
 
 pkgver() {
