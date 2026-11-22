@@ -1,7 +1,7 @@
 # Maintainer: <name> <email>
 pkgname=tmux-monitor-git
 _pkgname=tmux-monitor
-pkgver=r0
+pkgver=r5.5260ea0
 pkgrel=1
 pkgdesc="Desktop window for tmux sessions and NVIDIA GPU usage, with a session archive"
 arch=(any)

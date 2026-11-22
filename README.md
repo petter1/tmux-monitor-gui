@@ -40,6 +40,21 @@ sudo pacman -S --needed python-pyqt6 tmux gettext   # + nvidia-utils if you have
 
 ## Install
 
+### Arch Linux (makepkg / yay)
+
+The `PKGBUILD` builds the package `tmux-monitor-git` from the repository:
+
+```sh
+git clone https://github.com/<user>/<repo>.git
+cd <repo>
+yay -Bi .          # or: makepkg -si
+```
+
+It installs to `/usr/bin`, `/usr/share/applications`, `/usr/share/locale`
+and `/usr/share/tmux-monitor/archive.tmux`.
+
+### Other distributions (user-local)
+
 ```sh
 git clone https://github.com/<user>/<repo>.git
 cd <repo>
@@ -90,8 +105,11 @@ Files are created with mode `600`. Enable it by adding one line to your
 `tmux.conf` (`install.sh` prints it):
 
 ```tmux
-source-file -q ~/.config/tmux-monitor/archive.tmux
+source-file -q /usr/share/tmux-monitor/archive.tmux    # Arch package
+source-file -q ~/.config/tmux-monitor/archive.tmux     # install.sh
 ```
+
+then reload it with `tmux source-file ~/.config/tmux/tmux.conf` (or `~/.tmux.conf`).
 
 Only panes created after enabling are recorded.
 
