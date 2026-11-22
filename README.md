@@ -21,7 +21,7 @@ TTS, …) that run detached in tmux.
 - Optional session archive: output of ended sessions stays readable
   (see below; needs tmux 3.2+)
 - Settings dialog: start at login, always on top at startup, language,
-  session archive (enable, compact), install/update via yay
+  session archive (enable, compact), install/update the Arch package
 - "Always on top" toggle
 - English and German UI (gettext): system locale, or choose in Settings…
 
@@ -48,14 +48,14 @@ The `PKGBUILD` builds the package `tmux-monitor-git` from the repository:
 ```sh
 git clone https://github.com/petter1/tmux-monitor-gui.git
 cd tmux-monitor-gui
-yay -Bi .          # or: makepkg -si
+makepkg -si
 ```
 
 It installs to `/usr/bin`, `/usr/share/applications` and `/usr/share/locale`.
 
 When you run the app from the cloned folder, **Settings… → Install / update
-with yay** does the same in a tmux session and opens it in a terminal
-for your password.
+package** runs `makepkg -sicf` in `~/.cache/tmux-monitor/build` inside a tmux
+session and opens it in a terminal for your password.
 
 ### Other distributions (user-local)
 

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: tmux-monitor\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-22 22:16+0100\n"
-"PO-Revision-Date: 2026-11-22 22:16+0100\n"
+"POT-Creation-Date: 2026-11-22 23:07+0100\n"
+"PO-Revision-Date: 2026-11-22 23:07+0100\n"
 "Last-Translator: Automatically generated\n"
 "Language-Team: none\n"
 "Language: en\n"
@@ -160,28 +160,28 @@ msgctxt "status message"
 msgid "Failed to start terminal: {error}"
 msgstr "Failed to start terminal: {error}"
 
-#: tmux_monitor.py:535
+#: tmux_monitor.py:541
 #, python-brace-format
 msgctxt "footer"
 msgid "Archive: {size} – compact?"
 msgstr "Archive: {size} – compact?"
 
-#: tmux_monitor.py:550 tmux_monitor.py:647
+#: tmux_monitor.py:556 tmux_monitor.py:653
 msgctxt "dialog title"
 msgid "Settings"
 msgstr "Settings"
 
-#: tmux_monitor.py:555
+#: tmux_monitor.py:561
 msgctxt "settings"
 msgid "Session archive"
 msgstr "Session archive"
 
-#: tmux_monitor.py:557
+#: tmux_monitor.py:563
 msgctxt "settings"
 msgid "Archive the output of all tmux sessions"
 msgstr "Archive the output of all tmux sessions"
 
-#: tmux_monitor.py:561
+#: tmux_monitor.py:567
 #, python-brace-format
 msgctxt "settings"
 msgid ""
@@ -193,78 +193,78 @@ msgstr ""
 "are recorded from now on. The archive can contain everything shown in your "
 "terminals."
 
-#: tmux_monitor.py:570
+#: tmux_monitor.py:576
 msgctxt "settings"
 msgid "Compact"
 msgstr "Compact"
 
-#: tmux_monitor.py:572
+#: tmux_monitor.py:578
 msgctxt "settings"
 msgid "Clean and gzip the logs of ended sessions"
 msgstr "Clean and gzip the logs of ended sessions"
 
-#: tmux_monitor.py:574
+#: tmux_monitor.py:580
 msgctxt "settings"
 msgid "Open folder"
 msgstr "Open folder"
 
-#: tmux_monitor.py:587
+#: tmux_monitor.py:593
 msgctxt "settings"
 msgid "tmux-monitor-archive not found."
 msgstr "tmux-monitor-archive not found."
 
-#: tmux_monitor.py:590
+#: tmux_monitor.py:596
 msgctxt "settings"
 msgid "Start"
 msgstr "Start"
 
-#: tmux_monitor.py:592
+#: tmux_monitor.py:598
 msgctxt "settings"
 msgid "Start at login"
 msgstr "Start at login"
 
-#: tmux_monitor.py:595
+#: tmux_monitor.py:601
 msgctxt "settings"
 msgid "Always on top at startup"
 msgstr "Always on top at startup"
 
-#: tmux_monitor.py:603
+#: tmux_monitor.py:609
 msgctxt "settings"
 msgid "Language"
 msgstr "Language"
 
-#: tmux_monitor.py:607
+#: tmux_monitor.py:613
 msgctxt "settings"
 msgid "System default"
 msgstr "System default"
 
-#: tmux_monitor.py:611
+#: tmux_monitor.py:617
 msgctxt "settings"
 msgid "Restart now"
 msgstr "Restart now"
 
-#: tmux_monitor.py:622
+#: tmux_monitor.py:628
 msgctxt "settings"
 msgid "Installation"
 msgstr "Installation"
 
-#: tmux_monitor.py:627
+#: tmux_monitor.py:633
 #, python-brace-format
 msgctxt "settings"
 msgid "Installed version: {version}"
 msgstr "Installed version: {version}"
 
-#: tmux_monitor.py:628
+#: tmux_monitor.py:634
 msgctxt "settings"
 msgid "Not installed as a package."
 msgstr "Not installed as a package."
 
-#: tmux_monitor.py:629
+#: tmux_monitor.py:635
 msgctxt "settings"
-msgid "Install / update with yay"
-msgstr "Install / update with yay"
+msgid "Install / update package"
+msgstr "Install / update package"
 
-#: tmux_monitor.py:631
+#: tmux_monitor.py:637
 msgctxt "settings"
 msgid ""
 "Builds the package with this folder's PKGBUILD (latest version from GitHub) "
@@ -273,7 +273,7 @@ msgstr ""
 "Builds the package with this folder's PKGBUILD (latest version from GitHub) "
 "in a tmux session and opens it in a terminal (asks for your password)."
 
-#: tmux_monitor.py:664
+#: tmux_monitor.py:670
 #, python-brace-format
 msgctxt "settings"
 msgid ""
@@ -283,43 +283,43 @@ msgstr ""
 "Folder: {path}\n"
 "{entries} entries ({active} active), raw {raw}, compacted {compacted}"
 
-#: tmux_monitor.py:669
+#: tmux_monitor.py:675
 msgctxt "settings"
 msgid "The archive is large – compacting is recommended."
 msgstr "The archive is large – compacting is recommended."
 
-#: tmux_monitor.py:677 tmux_monitor.py:691
+#: tmux_monitor.py:683 tmux_monitor.py:697
 msgctxt "dialog title"
 msgid "Session archive"
 msgstr "Session archive"
 
-#: tmux_monitor.py:734
+#: tmux_monitor.py:747
 msgctxt "command line"
 msgid "tmux session and GPU monitor (PyQt6)"
 msgstr "tmux session and GPU monitor (PyQt6)"
 
-#: tmux_monitor.py:736
+#: tmux_monitor.py:749
 msgctxt "command line metavar"
 msgid "SEC"
 msgstr "SEC"
 
-#: tmux_monitor.py:737
+#: tmux_monitor.py:750
 #, python-brace-format
 msgctxt "command line"
 msgid "refresh interval in seconds (default: {default})"
 msgstr "refresh interval in seconds (default: {default})"
 
-#: tmux_monitor.py:739
+#: tmux_monitor.py:752
 msgctxt "command line metavar"
 msgid "LANG"
 msgstr "LANG"
 
-#: tmux_monitor.py:740
+#: tmux_monitor.py:753
 msgctxt "command line"
 msgid "UI language, e.g. de or en (default: Settings, else system locale)"
 msgstr "UI language, e.g. de or en (default: Settings, else system locale)"
 
-#: tmux_monitor.py:743
+#: tmux_monitor.py:756
 msgctxt "command line"
 msgid "--interval must be greater than 0"
 msgstr "--interval must be greater than 0"

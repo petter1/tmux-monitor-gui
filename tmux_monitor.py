@@ -298,8 +298,8 @@ def set_autostart(on):
 
 
 def install_source():
-    """Checkout dir with a PKGBUILD if we run from one and yay exists, else None."""
-    if (HERE / "PKGBUILD").is_file() and shutil.which("yay"):
+    """Checkout dir with a PKGBUILD if we run from one on Arch, else None."""
+    if (HERE / "PKGBUILD").is_file() and shutil.which("makepkg"):
         return HERE
     return None
 
@@ -632,7 +632,7 @@ class SettingsDialog(QDialog):
             il.addWidget(QLabel(
                 _("settings", "Installed version: {version}").format(version=installed)
                 if installed else _("settings", "Not installed as a package.")))
-            ib = QPushButton(_("settings", "Install / update with yay"))
+            ib = QPushButton(_("settings", "Install / update package"))
             ib.setToolTip(_("settings",
                             "Builds the package with this folder's PKGBUILD (latest "
                             "version from GitHub) in a tmux session and opens it in a "
@@ -712,7 +712,8 @@ class SettingsDialog(QDialog):
         build = cache / APP_ID / "build"
         build.mkdir(parents=True, exist_ok=True)
         shutil.copy2(self.src / "PKGBUILD", build / "PKGBUILD")
-        script = ("yay -Bi . ; echo; "
+        # makepkg instead of "yay -Bi": yay wants the build dir to be a git repo
+        script = ("makepkg -sicf ; echo; "
                   "read -rp 'Done – press Enter to close this window. '")
         code, _out = run(["tmux", "new-session", "-d", "-s", name, "-c", str(build),
                           "bash", "-c", script])
