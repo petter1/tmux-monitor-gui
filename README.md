@@ -131,6 +131,8 @@ tmux-monitor-archive show render --tail 50
 tmux-monitor-archive status             # size; recommends compaction above 200 MB
 tmux-monitor-archive compact            # clean + gzip logs of ended sessions
 tmux-monitor-archive compact --older-than 7 --dry-run
+tmux-monitor-archive run job -- make all  # start a job in a new session, archived from the start
+tmux-monitor-archive snapshot job         # save the scrollback of a session that is not recorded
 ```
 
 `compact` strips escape sequences, collapses progress-bar redraws and

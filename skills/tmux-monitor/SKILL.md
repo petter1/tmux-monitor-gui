@@ -26,8 +26,17 @@ way and say so.
 1. Pick a short, descriptive kebab-case name (`yay-update`, `render-intro`,
    `tts-chapter3`). If it already exists (`tmux has-session -t '=NAME'`),
    choose another name; never reuse or kill a session you did not start.
-2. Start it detached, in the right directory. Print the exit code at the end
-   and keep a shell open, so the result stays visible after the job ends:
+2. Start it detached, in the right directory, **always archived**. If
+   `tmux-monitor-archive` is installed (`command -v tmux-monitor-archive`),
+   use it: it creates the session, records all output into the session
+   archive from the first byte (even when the user has not enabled the
+   global archive), prints the exit code at the end and keeps a shell open:
+
+   ```sh
+   tmux-monitor-archive run NAME --cwd /path/to/dir -- 'COMMAND'
+   ```
+
+   Without `tmux-monitor-archive`, fall back to plain tmux:
 
    ```sh
    tmux new-session -d -s NAME -c /path/to/dir 'COMMAND; echo "[exit code: $?]"; exec "$SHELL"'
@@ -57,9 +66,17 @@ minutes at most, not in a tight loop. When it is done, report the outcome
 ## Clean up
 
 Sessions do not end on their own because of `exec "$SHELL"`. Once the user
-has seen the result, offer to close the session
-(`tmux kill-session -t '=NAME'`). Only kill sessions you started, and only
-after the user agrees.
+has seen the result, offer to close the session. Only close sessions you
+started, and only after the user agrees. Archive first, then close:
+
+```sh
+tmux-monitor-archive snapshot NAME   # saves panes that were not recorded yet
+tmux kill-session -t '=NAME'
+```
+
+`snapshot` skips panes that are already recorded, so it is always safe to
+run. It only sees the tmux scrollback (default 2000 lines), which is why
+`run` is preferred for starting jobs.
 
 ## Session archive
 
@@ -72,6 +89,8 @@ the user asks why last night's install failed or what a past job printed.
 tmux-monitor-archive list                 # sessions, dates, commands (--json available)
 tmux-monitor-archive show NAME --tail 200 # cleaned text of the latest session NAME
 tmux-monitor-archive show FILE            # a specific entry from `list`
+tmux-monitor-archive run NAME -- CMD      # start an archived job (see above)
+tmux-monitor-archive snapshot NAME         # archive a running session now
 ```
 
 - Read only what the task needs: prefer `--tail`, or pipe `show` through

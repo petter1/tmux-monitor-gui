@@ -10,6 +10,9 @@ reads (cleaned of escape sequences) and compacts those logs.
     tmux-monitor-archive show NAME      cleaned text of a log (file or session name)
     tmux-monitor-archive compact        clean + gzip logs of ended sessions
     tmux-monitor-archive start-existing also archive panes that already run
+    tmux-monitor-archive run NAME [--cwd DIR] -- COMMAND
+                                        start COMMAND in a new, archived session
+    tmux-monitor-archive snapshot NAME  save the scrollback of a session
     tmux-monitor-archive dir            print the archive directory
 
 Archive: $TMUX_MONITOR_ARCHIVE or ${XDG_STATE_HOME:-~/.local/state}/tmux-monitor/archive
@@ -266,11 +269,17 @@ HOOKS = ("after-new-session", "after-new-window", "after-split-window")
 HOOK_INDEX = 42
 
 
-def pipe_shell_command(exe):
-    """Shell command for pipe-pane (tmux expands the #{...} formats per pane)."""
+def pipe_shell_command(exe, command=None):
+    """Shell command for pipe-pane (tmux expands the #{...} formats per pane).
+
+    command: record this instead of the pane's start command.
+    """
     exe = shlex.quote(str(Path(exe or sys.argv[0]).resolve()))
+    cmd = ("#{q:pane_start_command}" if command is None
+           # tmux expands formats and strftime: "##" and "%%" keep them literal
+           else shlex.quote(command).replace("#", "##").replace("%", "%%"))
     return (f"exec {exe} log #{{q:session_name}} #{{session_created}} "
-            f"#{{pane_id}} #{{q:pane_current_path}} #{{q:pane_start_command}}")
+            f"#{{pane_id}} #{{q:pane_current_path}} {cmd}")
 
 
 def cmd_hook_conf(a):
@@ -278,6 +287,65 @@ def cmd_hook_conf(a):
     print("# tmux-monitor: archive the output of every pane")
     for hook in HOOKS:
         print(f"set-hook -g {hook}[{HOOK_INDEX}] '{pipe}'")
+
+
+def tmux(*args, check=False):
+    r = subprocess.run(["tmux", *args], capture_output=True, text=True, timeout=10)
+    if check and r.returncode != 0:
+        sys.exit(r.stderr.strip() or f"tmux {args[0]} failed")
+    return r
+
+
+def cmd_run(a):
+    """Start COMMAND in a new tmux session that is archived from its first byte."""
+    if tmux("has-session", "-t", f"={a.name}").returncode == 0:
+        sys.exit(f"tmux session '{a.name}' already exists")
+    command = a.command
+    if not command:
+        sys.exit("no command given")
+    cmd = command[0] if len(command) == 1 else shlex.join(command)
+    channel = f"tmux-monitor-ready-{os.getpid()}"
+    # wait until the pipe is attached, so no output is lost
+    script = (f"tmux wait-for {channel}; {cmd}\nrc=$?; echo; echo \"[exit code: $rc]\"; "
+              f'exec "${{SHELL:-/bin/sh}}"')
+    tmux("new-session", "-d", "-s", a.name, "-c", a.cwd or os.getcwd(), script, check=True)
+    tmux("pipe-pane", "-o", "-t", f"={a.name}:", pipe_shell_command(a.exe, cmd), check=True)
+    tmux("wait-for", "-S", channel, check=True)
+    print(f"started tmux session '{a.name}' (archived); attach: tmux attach -t '{a.name}'")
+
+
+def cmd_snapshot(a):
+    """Save the current scrollback of a session's panes that are not being logged."""
+    fmt = "\t".join(["#{session_created}", "#{pane_id}", "#{pane_pipe}",
+                     "#{pane_current_path}", "#{pane_start_command}"])
+    r = tmux("list-panes", "-s", "-t", f"={a.name}", "-F", fmt, check=True)
+    d = archive_dir()
+    d.mkdir(parents=True, exist_ok=True)
+    saved = 0
+    for line in r.stdout.splitlines():
+        created, pane, pipe, cwd, command = (line.split("\t") + [""] * 5)[:5]
+        stamp = datetime.fromtimestamp(int(created)).strftime("%Y-%m-%d_%H%M%S")
+        raw = d / f"{stamp}_{safe(a.name)}_{pane.lstrip('%')}.log"
+        if pipe == "1" and raw.exists() and not a.force:
+            print(f"pane {pane}: already archived ({raw.name})")
+            continue
+        text = tmux("capture-pane", "-p", "-J", "-S", "-", "-E", "-", "-t", pane).stdout
+        try:
+            parts = shlex.split(command)
+            command = parts[0] if len(parts) == 1 else command
+        except ValueError:
+            pass
+        meta = {"session": a.name, "created": int(created), "pane": pane, "cwd": cwd,
+                "command": command, "snapshot": int(time.time())}
+        target = d / f"{stamp}_{safe(a.name)}_{pane.lstrip('%')}_snap{int(time.time())}.txt.gz"
+        with gzip.open(target, "wt", encoding="utf-8") as f:
+            f.write(HEADER_PREFIX.decode() + json.dumps(meta, ensure_ascii=False) + "\n")
+            f.write(clean(text.encode()))
+        os.chmod(target, 0o600)
+        saved += 1
+        print(f"pane {pane}: saved {target.name}")
+    if not saved:
+        print("nothing new to save")
 
 
 def cmd_start_existing(a):
@@ -328,6 +396,18 @@ def main():
     s = sub.add_parser("hook-conf", help="print the tmux.conf snippet")
     s.add_argument("--exe", help="path of this program (default: as called)")
     s.set_defaults(func=cmd_hook_conf)
+
+    s = sub.add_parser("run", help="start a command in a new, archived tmux session")
+    s.add_argument("name", help="session name")
+    s.add_argument("--cwd", help="working directory (default: current)")
+    s.add_argument("--exe", help=argparse.SUPPRESS)
+    s.add_argument("command", nargs="*", help="COMMAND [ARGS...] (put -- before it)")
+    s.set_defaults(func=cmd_run)
+
+    s = sub.add_parser("snapshot", help="save the scrollback of a session that is not logged")
+    s.add_argument("name", help="session name")
+    s.add_argument("--force", action="store_true", help="also panes that are already logged")
+    s.set_defaults(func=cmd_snapshot)
 
     s = sub.add_parser("start-existing", help="also archive panes that are already running")
     s.add_argument("--exe", help="path of this program (default: as called)")
