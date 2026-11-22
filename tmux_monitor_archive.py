@@ -9,6 +9,7 @@ reads (cleaned of escape sequences) and compacts those logs.
     tmux-monitor-archive list           all archived panes
     tmux-monitor-archive show NAME      cleaned text of a log (file or session name)
     tmux-monitor-archive compact        clean + gzip logs of ended sessions
+    tmux-monitor-archive start-existing also archive panes that already run
     tmux-monitor-archive dir            print the archive directory
 
 Archive: $TMUX_MONITOR_ARCHIVE or ${XDG_STATE_HOME:-~/.local/state}/tmux-monitor/archive
@@ -261,13 +262,39 @@ def cmd_compact(a):
         print(f"saved {human(max(saved, 0))}")
 
 
+HOOKS = ("after-new-session", "after-new-window", "after-split-window")
+HOOK_INDEX = 42
+
+
+def pipe_shell_command(exe):
+    """Shell command for pipe-pane (tmux expands the #{...} formats per pane)."""
+    exe = shlex.quote(str(Path(exe or sys.argv[0]).resolve()))
+    return (f"exec {exe} log #{{q:session_name}} #{{session_created}} "
+            f"#{{pane_id}} #{{q:pane_current_path}} #{{q:pane_start_command}}")
+
+
 def cmd_hook_conf(a):
-    exe = shlex.quote(str(Path(a.exe or sys.argv[0]).resolve()))
-    pipe = (f'pipe-pane -o "exec {exe} log #{{q:session_name}} #{{session_created}} '
-            f'#{{pane_id}} #{{q:pane_current_path}} #{{q:pane_start_command}}"')
+    pipe = f'pipe-pane -o "{pipe_shell_command(a.exe)}"'
     print("# tmux-monitor: archive the output of every pane")
-    for hook in ("after-new-session", "after-new-window", "after-split-window"):
-        print(f"set-hook -g {hook}[42] '{pipe}'")
+    for hook in HOOKS:
+        print(f"set-hook -g {hook}[{HOOK_INDEX}] '{pipe}'")
+
+
+def cmd_start_existing(a):
+    """Start archiving panes that already exist (and have no pipe yet)."""
+    try:
+        out = subprocess.run(["tmux", "list-panes", "-a", "-F", "#{pane_id} #{pane_pipe}"],
+                             capture_output=True, text=True, timeout=3).stdout
+    except (OSError, subprocess.TimeoutExpired):
+        return
+    cmd = pipe_shell_command(a.exe)
+    started = 0
+    for line in out.splitlines():
+        pane, pipe = line.split()
+        if pipe == "0":
+            subprocess.run(["tmux", "pipe-pane", "-o", "-t", pane, cmd], timeout=3)
+            started += 1
+    print(f"archiving {started} existing pane(s)")
 
 
 def main():
@@ -301,6 +328,10 @@ def main():
     s = sub.add_parser("hook-conf", help="print the tmux.conf snippet")
     s.add_argument("--exe", help="path of this program (default: as called)")
     s.set_defaults(func=cmd_hook_conf)
+
+    s = sub.add_parser("start-existing", help="also archive panes that are already running")
+    s.add_argument("--exe", help="path of this program (default: as called)")
+    s.set_defaults(func=cmd_start_existing)
 
     s = sub.add_parser("dir", help="print the archive directory")
     s.set_defaults(func=lambda a: print(archive_dir()))

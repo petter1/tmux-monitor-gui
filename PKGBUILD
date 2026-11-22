@@ -25,7 +25,6 @@ pkgver() {
 build() {
     cd "$_pkgname"
     ./i18n.sh compile "$srcdir/locale"
-    python tmux_monitor_archive.py hook-conf --exe /usr/bin/tmux-monitor-archive > "$srcdir/archive.tmux"
 }
 
 package() {
@@ -33,7 +32,6 @@ package() {
     install -Dm755 tmux_monitor.py "$pkgdir/usr/bin/tmux-monitor"
     install -Dm755 tmux_monitor_archive.py "$pkgdir/usr/bin/tmux-monitor-archive"
     install -Dm644 tmux-monitor.desktop "$pkgdir/usr/share/applications/tmux-monitor.desktop"
-    install -Dm644 "$srcdir/archive.tmux" "$pkgdir/usr/share/tmux-monitor/archive.tmux"
     install -Dm644 README.md "$pkgdir/usr/share/doc/$_pkgname/README.md"
     cp -r "$srcdir/locale" "$pkgdir/usr/share/locale"
 }

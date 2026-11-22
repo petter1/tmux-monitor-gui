@@ -21,6 +21,7 @@ TTS, …) that run detached in tmux.
 - Attach/Detach button and "End session…" (with confirmation)
 - Optional session archive: output of ended sessions stays readable
   (see below; needs tmux 3.2+)
+- Settings dialog: enable the archive, compact it, install/update via yay
 - "Always on top" toggle
 - English and German UI (gettext), follows the system locale
 
@@ -50,8 +51,11 @@ cd <repo>
 yay -Bi .          # or: makepkg -si
 ```
 
-It installs to `/usr/bin`, `/usr/share/applications`, `/usr/share/locale`
-and `/usr/share/tmux-monitor/archive.tmux`.
+It installs to `/usr/bin`, `/usr/share/applications` and `/usr/share/locale`.
+
+When you run the app from the cloned folder, **Settings… → Install / update
+with yay** does the same in a tmux session and opens it in a terminal
+for your password.
 
 ### Other distributions (user-local)
 
@@ -66,6 +70,7 @@ cd <repo>
 - `~/.local/bin/tmux-monitor`
 - `~/.local/share/applications/tmux-monitor.desktop` (app menu entry)
 - `~/.local/share/locale/*/LC_MESSAGES/tmux-monitor.mo`
+- `~/.local/bin/tmux-monitor-archive`, `~/.config/tmux-monitor/archive.tmux`
 
 Uninstall with `./install.sh --uninstall`.
 
@@ -101,17 +106,16 @@ has ended, e.g. to find out later why an overnight install failed.
 
 A tmux hook (`pipe-pane`) writes each pane's raw output to
 `~/.local/state/tmux-monitor/archive/` (override with `$TMUX_MONITOR_ARCHIVE`).
-Files are created with mode `600`. Enable it by adding one line to your
-`tmux.conf` (`install.sh` prints it):
+Files are created with mode `600`.
 
-```tmux
-source-file -q /usr/share/tmux-monitor/archive.tmux    # Arch package
-source-file -q ~/.config/tmux-monitor/archive.tmux     # install.sh
-```
+**Enable it in the app:** *Settings… → Session archive*. This adds one line
+to your `tmux.conf`, applies it to the running tmux server and starts
+recording panes that are already running. The same dialog shows the archive
+size, compacts it and opens the folder. When the archive grows beyond
+200 MB, the main window shows a hint.
 
-then reload it with `tmux source-file ~/.config/tmux/tmux.conf` (or `~/.tmux.conf`).
-
-Only panes created after enabling are recorded.
+Manual alternative: add `source-file -q ~/.config/tmux-monitor/archive.tmux`
+to your `tmux.conf` (`install.sh` creates that file).
 
 ```sh
 tmux-monitor-archive list               # all archived panes (--json available)

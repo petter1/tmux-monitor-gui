@@ -7,6 +7,7 @@ Without an NVIDIA GPU (no nvidia-smi) the GPU panel is hidden.
 """
 import argparse
 import gettext
+import json
 import os
 import shlex
 import shutil
@@ -15,11 +16,12 @@ import sys
 import time
 from pathlib import Path
 
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import QLibraryInfo, QLocale, Qt, QTimer, QTranslator, QUrl
+from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import (
-    QApplication, QCheckBox, QGridLayout, QGroupBox, QHBoxLayout, QHeaderView,
-    QLabel, QMessageBox, QProgressBar, QPushButton, QTableWidget,
-    QTableWidgetItem, QVBoxLayout, QWidget,
+    QApplication, QCheckBox, QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
+    QHBoxLayout, QHeaderView, QLabel, QMessageBox, QProgressBar, QPushButton,
+    QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )
 
 APP_ID = "tmux-monitor"
@@ -141,6 +143,107 @@ def gpu_info():
     return {"name": name, "util": util, "used": used, "total": total, "temp": temp}
 
 
+# --- Session archive setup ----------------------------------------------------
+HERE = Path(__file__).resolve().parent
+CONFIG_DIR = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / APP_ID
+SNIPPET = CONFIG_DIR / "archive.tmux"
+CONF_MARKER = "tmux-monitor/archive.tmux"
+ARCHIVE_HOOKS = ("after-new-session", "after-new-window", "after-split-window")
+
+
+def archive_tool():
+    """Command (list) for tmux-monitor-archive, or None. A checkout wins over PATH."""
+    local = HERE / "tmux_monitor_archive.py"
+    if local.is_file():
+        return [str(local)]
+    exe = shutil.which("tmux-monitor-archive")
+    return [exe] if exe else None
+
+
+def tmux_conf_path():
+    legacy = Path.home() / ".tmux.conf"
+    if legacy.exists():
+        return legacy
+    return Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "tmux" / "tmux.conf"
+
+
+def archive_enabled():
+    try:
+        return CONF_MARKER in tmux_conf_path().read_text()
+    except OSError:
+        return False
+
+
+def write_snippet():
+    """(Re)write the tmux snippet so it points at the current archive tool."""
+    tool = archive_tool()
+    if not tool:
+        return False
+    code, out = run(tool + ["hook-conf", "--exe", tool[0]])
+    if code != 0:
+        return False
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+    if not SNIPPET.exists() or SNIPPET.read_text() != out:
+        SNIPPET.write_text(out)
+    return True
+
+
+def set_archive_enabled(on):
+    """Edit tmux.conf and apply the change to the running tmux server."""
+    conf = tmux_conf_path()
+    try:
+        lines = conf.read_text().splitlines()
+    except OSError:
+        lines = []
+    lines = [l for l in lines
+             if CONF_MARKER not in l and l.strip() != "# tmux-monitor: session archive"]
+    tool = archive_tool()
+    if on:
+        if not write_snippet():
+            raise RuntimeError("tmux-monitor-archive not found")
+        lines += ["# tmux-monitor: session archive",
+                  f"source-file -q {shlex.quote(str(SNIPPET))}"]
+    conf.parent.mkdir(parents=True, exist_ok=True)
+    conf.write_text("\n".join(lines).strip("\n") + "\n" if lines else "")
+    if on:
+        run(["tmux", "source-file", str(SNIPPET)])
+        run(tool + ["start-existing", "--exe", tool[0]])
+    else:
+        for hook in ARCHIVE_HOOKS:
+            run(["tmux", "set-hook", "-gu", f"{hook}[42]"])
+
+
+def archive_status():
+    tool = archive_tool()
+    if not tool:
+        return None
+    code, out = run(tool + ["status", "--json"])
+    try:
+        return json.loads(out) if code == 0 else None
+    except ValueError:
+        return None
+
+
+def tilde(path):
+    """Show paths below $HOME as ~/..."""
+    p, home = str(path), str(Path.home())
+    return "~" + p[len(home):] if p == home or p.startswith(home + "/") else p
+
+
+def human_size(n):
+    for unit in ("B", "KB", "MB", "GB"):
+        if n < 1024 or unit == "GB":
+            return f"{n:.0f} {unit}" if unit == "B" else f"{n:.1f} {unit}"
+        n /= 1024
+
+
+def install_source():
+    """Checkout dir with a PKGBUILD if we run from one and yay exists, else None."""
+    if (HERE / "PKGBUILD").is_file() and shutil.which("yay"):
+        return HERE
+    return None
+
+
 def fmt_age(sec):
     sec = int(sec)
     h, rem = divmod(sec, 3600)
@@ -219,10 +322,27 @@ class Monitor(QWidget):
         self.on_top = QCheckBox(_("footer", "Always on top"))
         self.on_top.toggled.connect(self.set_on_top)
         self.status = QLabel("")
+        settings = QPushButton(_("footer", "Settings…"))
+        settings.clicked.connect(self.show_settings)
+        self.archive_hint = QPushButton()
+        self.archive_hint.setFlat(True)
+        self.archive_hint.setStyleSheet("color: #d08000;")
+        self.archive_hint.clicked.connect(self.show_settings)
+        self.archive_hint.hide()
         foot = QHBoxLayout()
         foot.addWidget(self.on_top)
+        foot.addWidget(settings)
+        foot.addWidget(self.archive_hint)
         foot.addStretch()
         foot.addWidget(self.status)
+
+        # keep the snippet in sync with where the archive tool lives now
+        if archive_enabled():
+            write_snippet()
+        self.archive_timer = QTimer(self)
+        self.archive_timer.timeout.connect(self.check_archive)
+        self.archive_timer.start(60_000)
+        QTimer.singleShot(0, self.check_archive)
 
         root = QVBoxLayout(self)
         root.addWidget(sess_box, 1)
@@ -321,7 +441,9 @@ class Monitor(QWidget):
             self.refresh()
 
     def attach(self, row):
-        name = self.sessions[row]["name"]
+        self.open_in_terminal(self.sessions[row]["name"])
+
+    def open_in_terminal(self, name):
         if not self.terminal:
             self.status.setText(_("status message", "No terminal found (set $TERMINAL)"))
             return
@@ -337,6 +459,142 @@ class Monitor(QWidget):
     def set_on_top(self, on):
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, on)
         self.show()
+
+    def check_archive(self):
+        st = archive_status() if archive_enabled() else None
+        if st and st.get("compaction_recommended"):
+            self.archive_hint.setText(
+                _("footer", "Archive: {size} – compact?").format(
+                    size=human_size(st["raw_bytes"])))
+            self.archive_hint.show()
+        else:
+            self.archive_hint.hide()
+
+    def show_settings(self):
+        SettingsDialog(self).exec()
+        self.check_archive()
+
+
+class SettingsDialog(QDialog):
+    def __init__(self, monitor):
+        super().__init__(monitor)
+        self.monitor = monitor
+        self.setWindowTitle(_("dialog title", "Settings"))
+        self.setMinimumWidth(480)
+        layout = QVBoxLayout(self)
+
+        # --- Session archive
+        box = QGroupBox(_("settings", "Session archive"))
+        bl = QVBoxLayout(box)
+        self.enable = QCheckBox(_("settings", "Archive the output of all tmux sessions"))
+        self.enable.setChecked(archive_enabled())
+        self.enable.toggled.connect(self.toggle_archive)
+        hint = QLabel(_("settings",
+                        "Adds one line to {conf} and applies it to the running tmux. "
+                        "Running sessions are recorded from now on. The archive can "
+                        "contain everything shown in your terminals.")
+                      .format(conf=tilde(tmux_conf_path())))
+        hint.setWordWrap(True)
+        hint.setStyleSheet("color: gray;")
+        self.info = QLabel()
+        self.info.setWordWrap(True)
+        self.info.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.compact_btn = QPushButton(_("settings", "Compact"))
+        self.compact_btn.setToolTip(_("settings",
+                                      "Clean and gzip the logs of ended sessions"))
+        self.compact_btn.clicked.connect(self.compact)
+        open_btn = QPushButton(_("settings", "Open folder"))
+        open_btn.clicked.connect(self.open_folder)
+        row = QHBoxLayout()
+        row.addWidget(self.compact_btn)
+        row.addWidget(open_btn)
+        row.addStretch()
+        bl.addWidget(self.enable)
+        bl.addWidget(hint)
+        bl.addWidget(self.info)
+        bl.addLayout(row)
+        layout.addWidget(box)
+        if not archive_tool():
+            box.setEnabled(False)
+            self.info.setText(_("settings", "tmux-monitor-archive not found."))
+
+        # --- Installation (only when running from a checkout with PKGBUILD)
+        self.src = install_source()
+        if self.src:
+            ibox = QGroupBox(_("settings", "Installation"))
+            il = QVBoxLayout(ibox)
+            code, out = run(["pacman", "-Q", "tmux-monitor-git"])
+            installed = out.split()[1] if code == 0 and out.split() else None
+            il.addWidget(QLabel(
+                _("settings", "Installed version: {version}").format(version=installed)
+                if installed else _("settings", "Not installed as a package.")))
+            ib = QPushButton(_("settings", "Install / update with yay"))
+            ib.setToolTip(_("settings",
+                            "Builds the package from this folder in a tmux session "
+                            "and opens it in a terminal (asks for your password)."))
+            ib.clicked.connect(self.install)
+            il.addWidget(ib, alignment=Qt.AlignmentFlag.AlignLeft)
+            layout.addWidget(ibox)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Close)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+        self.update_info()
+
+    def update_info(self):
+        if not archive_tool():
+            return
+        st = archive_status()
+        if not st:
+            self.info.setText("")
+            self.compact_btn.setEnabled(False)
+            return
+        text = _("settings", "Folder: {path}\n{entries} entries ({active} active), "
+                             "raw {raw}, compacted {compacted}").format(
+            path=tilde(st["archive"]), entries=st["entries"], active=st["active"],
+            raw=human_size(st["raw_bytes"]), compacted=human_size(st["compacted_bytes"]))
+        if st["compaction_recommended"]:
+            text += "\n" + _("settings", "The archive is large – compacting is recommended.")
+        self.info.setText(text)
+        self.compact_btn.setEnabled(st["compactable_bytes"] > 0)
+
+    def toggle_archive(self, on):
+        try:
+            set_archive_enabled(on)
+        except (OSError, RuntimeError) as e:
+            QMessageBox.warning(self, _("dialog title", "Session archive"), str(e))
+            self.enable.blockSignals(True)
+            self.enable.setChecked(archive_enabled())
+            self.enable.blockSignals(False)
+        self.update_info()
+
+    def compact(self):
+        tool = archive_tool()
+        try:
+            r = subprocess.run(tool + ["compact"], capture_output=True, text=True, timeout=600)
+            msg = r.stdout.strip().splitlines()[-1] if r.stdout.strip() else r.stderr.strip()
+        except (OSError, subprocess.TimeoutExpired) as e:
+            msg = str(e)
+        self.update_info()
+        QMessageBox.information(self, _("dialog title", "Session archive"), msg)
+
+    def open_folder(self):
+        st = archive_status()
+        if st:
+            path = Path(st["archive"])
+            path.mkdir(parents=True, exist_ok=True)
+            QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
+
+    def install(self):
+        name = "tmux-monitor-install"
+        run(["tmux", "kill-session", "-t", f"={name}"])
+        script = ("yay -Bi . ; echo; "
+                  "read -rp 'Done – press Enter to close this window. '")
+        code, _out = run(["tmux", "new-session", "-d", "-s", name, "-c", str(self.src),
+                          "bash", "-c", script])
+        if code == 0:
+            self.monitor.open_in_terminal(name)
+            self.accept()
 
 
 def main():
@@ -360,6 +618,12 @@ def main():
 
     app = QApplication([sys.argv[0]] + qt_args)
     app.setDesktopFileName(APP_ID)
+    # Qt's own strings (standard buttons like "Close", "Yes", "No")
+    qt_tr = QTranslator(app)
+    locale = QLocale(args.lang) if args.lang else QLocale.system()
+    if qt_tr.load(locale, "qtbase", "_",
+                  QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)):
+        app.installTranslator(qt_tr)
     w = Monitor(interval=args.interval)
     w.show()
     sys.exit(app.exec())
