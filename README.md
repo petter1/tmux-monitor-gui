@@ -23,7 +23,7 @@ TTS, …) that run detached in tmux.
   (see below; needs tmux 3.2+)
 - Settings dialog: enable the archive, compact it, install/update via yay
 - "Always on top" toggle
-- English and German UI (gettext), follows the system locale
+- English and German UI (gettext): system locale, or choose in Settings…
 
 ## Requirements
 

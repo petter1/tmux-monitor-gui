@@ -19,7 +19,7 @@ from pathlib import Path
 from PyQt6.QtCore import QLibraryInfo, QLocale, Qt, QTimer, QTranslator, QUrl
 from PyQt6.QtGui import QDesktopServices
 from PyQt6.QtWidgets import (
-    QApplication, QCheckBox, QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
+    QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QGridLayout, QGroupBox,
     QHBoxLayout, QHeaderView, QLabel, QMessageBox, QProgressBar, QPushButton,
     QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget,
 )
@@ -49,6 +49,29 @@ def locale_dirs():
     here = Path(__file__).resolve().parent
     data_home = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share"))
     return [here / "locale", data_home / "locale", None]  # None = system default
+
+
+LANGUAGES = [("", None), ("de", "Deutsch"), ("en", "English")]  # "" = system
+
+
+def settings_path():
+    base = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    return base / APP_ID / "settings.json"
+
+
+def load_settings():
+    try:
+        return json.loads(settings_path().read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def save_settings(**changes):
+    data = load_settings()
+    data.update(changes)
+    p = settings_path()
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(data, indent=2) + "\n")
 
 
 def setup_i18n(lang=None):
@@ -518,6 +541,23 @@ class SettingsDialog(QDialog):
             box.setEnabled(False)
             self.info.setText(_("settings", "tmux-monitor-archive not found."))
 
+        # --- Language
+        lbox = QGroupBox(_("settings", "Language"))
+        ll = QHBoxLayout(lbox)
+        self.lang = QComboBox()
+        for code, label in LANGUAGES:
+            self.lang.addItem(label or _("settings", "System default"), code)
+        current = load_settings().get("lang") or ""
+        self.lang.setCurrentIndex(max(0, self.lang.findData(current)))
+        self.lang.currentIndexChanged.connect(self.change_language)
+        self.restart_btn = QPushButton(_("settings", "Restart now"))
+        self.restart_btn.clicked.connect(restart)
+        self.restart_btn.hide()
+        ll.addWidget(self.lang)
+        ll.addWidget(self.restart_btn)
+        ll.addStretch()
+        layout.addWidget(lbox)
+
         # --- Installation (only when running from a checkout with PKGBUILD)
         self.src = install_source()
         if self.src:
@@ -540,6 +580,10 @@ class SettingsDialog(QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
         self.update_info()
+
+    def change_language(self, _index):
+        save_settings(lang=self.lang.currentData() or None)
+        self.restart_btn.show()
 
     def update_info(self):
         if not archive_tool():
@@ -597,12 +641,26 @@ class SettingsDialog(QDialog):
             self.accept()
 
 
+def restart():
+    """Restart the app (drops a --lang option so the saved language applies)."""
+    argv, skip = [], False
+    for arg in sys.argv[1:]:
+        if skip:
+            skip = False
+        elif arg == "--lang":
+            skip = True
+        elif not arg.startswith("--lang="):
+            argv.append(arg)
+    os.execv(sys.executable, [sys.executable, sys.argv[0]] + argv)
+
+
 def main():
     # --lang first, so that --help is already translated
     pre = argparse.ArgumentParser(add_help=False)
     pre.add_argument("--lang")
     pre_args, _rest = pre.parse_known_args()
-    setup_i18n(pre_args.lang)
+    lang = pre_args.lang or load_settings().get("lang") or None
+    setup_i18n(lang)
 
     parser = argparse.ArgumentParser(
         description=_("command line", "tmux session and GPU monitor (PyQt6)"))
@@ -611,7 +669,7 @@ def main():
                         help=_("command line", "refresh interval in seconds (default: {default})")
                         .format(default=f"{DEFAULT_INTERVAL:g}"))
     parser.add_argument("--lang", metavar=_("command line metavar", "LANG"),
-                        help=_("command line", "UI language, e.g. de or en (default: system locale)"))
+                        help=_("command line", "UI language, e.g. de or en (default: Settings, else system locale)"))
     args, qt_args = parser.parse_known_args()
     if args.interval <= 0:
         parser.error(_("command line", "--interval must be greater than 0"))
@@ -620,7 +678,7 @@ def main():
     app.setDesktopFileName(APP_ID)
     # Qt's own strings (standard buttons like "Close", "Yes", "No")
     qt_tr = QTranslator(app)
-    locale = QLocale(args.lang) if args.lang else QLocale.system()
+    locale = QLocale(lang) if lang else QLocale.system()
     if qt_tr.load(locale, "qtbase", "_",
                   QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)):
         app.installTranslator(qt_tr)
