@@ -21,7 +21,8 @@ TTS, …) that run detached in tmux.
 - Attach/Detach button and "End session…" (with confirmation)
 - Optional session archive: output of ended sessions stays readable
   (see below; needs tmux 3.2+)
-- Settings dialog: enable the archive, compact it, install/update via yay
+- Settings dialog: start at login, always on top at startup, language,
+  session archive (enable, compact), install/update via yay
 - "Always on top" toggle
 - English and German UI (gettext): system locale, or choose in Settings…
 

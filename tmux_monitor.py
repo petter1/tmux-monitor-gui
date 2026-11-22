@@ -260,6 +260,43 @@ def human_size(n):
         n /= 1024
 
 
+def autostart_path():
+    base = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
+    return base / "autostart" / f"{APP_ID}.desktop"
+
+
+def launch_command():
+    """How to start this app: the installed command, else this script."""
+    installed = shutil.which(APP_ID)
+    if installed and not (HERE / "tmux_monitor_archive.py").is_file():
+        return shlex.quote(installed)
+    return f"{shlex.quote(sys.executable)} {shlex.quote(str(Path(__file__).resolve()))}"
+
+
+def autostart_enabled():
+    return autostart_path().is_file()
+
+
+def set_autostart(on):
+    path = autostart_path()
+    if not on:
+        path.unlink(missing_ok=True)
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    content = (
+        "[Desktop Entry]\n"
+        "Type=Application\n"
+        "Name=tmux Monitor\n"
+        "Comment=Watch tmux sessions and NVIDIA GPU usage\n"
+        f"Exec={launch_command()}\n"
+        "Icon=utilities-system-monitor\n"
+        "Terminal=false\n"
+        "X-GNOME-Autostart-enabled=true\n"
+    )
+    if not path.is_file() or path.read_text() != content:
+        path.write_text(content)
+
+
 def install_source():
     """Checkout dir with a PKGBUILD if we run from one and yay exists, else None."""
     if (HERE / "PKGBUILD").is_file() and shutil.which("yay"):
@@ -344,6 +381,11 @@ class Monitor(QWidget):
         # --- Footer
         self.on_top = QCheckBox(_("footer", "Always on top"))
         self.on_top.toggled.connect(self.set_on_top)
+        if load_settings().get("on_top_at_start", True):
+            self.on_top.blockSignals(True)  # window is not shown yet
+            self.on_top.setChecked(True)
+            self.on_top.blockSignals(False)
+            self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
         self.status = QLabel("")
         settings = QPushButton(_("footer", "Settings…"))
         settings.clicked.connect(self.show_settings)
@@ -362,6 +404,8 @@ class Monitor(QWidget):
         # keep the snippet in sync with where the archive tool lives now
         if archive_enabled():
             write_snippet()
+        if autostart_enabled():  # follow the app if it moved (e.g. now installed)
+            set_autostart(True)
         self.archive_timer = QTimer(self)
         self.archive_timer.timeout.connect(self.check_archive)
         self.archive_timer.start(60_000)
@@ -541,6 +585,19 @@ class SettingsDialog(QDialog):
             box.setEnabled(False)
             self.info.setText(_("settings", "tmux-monitor-archive not found."))
 
+        # --- Start
+        sbox = QGroupBox(_("settings", "Start"))
+        sl = QVBoxLayout(sbox)
+        self.autostart = QCheckBox(_("settings", "Start at login"))
+        self.autostart.setChecked(autostart_enabled())
+        self.autostart.toggled.connect(self.toggle_autostart)
+        self.top_default = QCheckBox(_("settings", "Always on top at startup"))
+        self.top_default.setChecked(load_settings().get("on_top_at_start", True))
+        self.top_default.toggled.connect(lambda on: save_settings(on_top_at_start=on))
+        sl.addWidget(self.autostart)
+        sl.addWidget(self.top_default)
+        layout.addWidget(sbox)
+
         # --- Language
         lbox = QGroupBox(_("settings", "Language"))
         ll = QHBoxLayout(lbox)
@@ -580,6 +637,15 @@ class SettingsDialog(QDialog):
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
         self.update_info()
+
+    def toggle_autostart(self, on):
+        try:
+            set_autostart(on)
+        except OSError as e:
+            QMessageBox.warning(self, _("dialog title", "Settings"), str(e))
+            self.autostart.blockSignals(True)
+            self.autostart.setChecked(autostart_enabled())
+            self.autostart.blockSignals(False)
 
     def change_language(self, _index):
         save_settings(lang=self.lang.currentData() or None)
