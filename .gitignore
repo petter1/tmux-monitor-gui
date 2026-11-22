@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+# compiled translations (built by ./i18n.sh or install.sh)
+locale/
+*.mo
+po/*~
+.venv/
+.idea/
+.vscode/

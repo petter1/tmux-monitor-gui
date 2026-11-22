@@ -1,0 +1,147 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the tmux-monitor package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: tmux-monitor\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-22 21:07+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: tmux_monitor.py:156
+msgctxt "window"
+msgid "tmux Monitor"
+msgstr ""
+
+#: tmux_monitor.py:163
+msgctxt "session table header"
+msgid "Session"
+msgstr ""
+
+#: tmux_monitor.py:164
+msgctxt "session table header"
+msgid "Uptime"
+msgstr ""
+
+#: tmux_monitor.py:165
+msgctxt "session table header"
+msgid "Status"
+msgstr ""
+
+#: tmux_monitor.py:166
+msgctxt "session table header"
+msgid "Last output"
+msgstr ""
+
+#: tmux_monitor.py:176
+msgctxt "sessions"
+msgid "No tmux sessions."
+msgstr ""
+
+#: tmux_monitor.py:179
+msgctxt "sessions"
+msgid "tmux sessions (double-click = open in new window)"
+msgstr ""
+
+#: tmux_monitor.py:188
+msgctxt "gpu"
+msgid "Peak: –"
+msgstr ""
+
+#: tmux_monitor.py:190
+msgctxt "gpu button"
+msgid "Reset peak"
+msgstr ""
+
+#: tmux_monitor.py:193
+msgctxt "gpu"
+msgid "GPU"
+msgstr ""
+
+#: tmux_monitor.py:198
+msgctxt "gpu"
+msgid "Utilisation"
+msgstr ""
+
+#: tmux_monitor.py:200
+msgctxt "gpu"
+msgid "VRAM"
+msgstr ""
+
+#: tmux_monitor.py:206
+msgctxt "footer"
+msgid "Always on top"
+msgstr ""
+
+#: tmux_monitor.py:228
+msgctxt "session status"
+msgid "attached"
+msgstr ""
+
+#: tmux_monitor.py:229
+msgctxt "session status"
+msgid "in background"
+msgstr ""
+
+#: tmux_monitor.py:250
+#, python-brace-format
+msgctxt "gpu"
+msgid "Peak: {mib} MiB"
+msgstr ""
+
+#: tmux_monitor.py:252
+#, python-brace-format
+msgctxt "footer"
+msgid "updated {time}"
+msgstr ""
+
+#: tmux_monitor.py:261
+msgctxt "status message"
+msgid "No terminal found (set $TERMINAL)"
+msgstr ""
+
+#: tmux_monitor.py:270
+#, python-brace-format
+msgctxt "status message"
+msgid "Failed to start terminal: {error}"
+msgstr ""
+
+#: tmux_monitor.py:285
+msgctxt "command line"
+msgid "tmux session and GPU monitor (PyQt6)"
+msgstr ""
+
+#: tmux_monitor.py:287
+msgctxt "command line metavar"
+msgid "SEC"
+msgstr ""
+
+#: tmux_monitor.py:288
+#, python-brace-format
+msgctxt "command line"
+msgid "refresh interval in seconds (default: {default})"
+msgstr ""
+
+#: tmux_monitor.py:290
+msgctxt "command line metavar"
+msgid "LANG"
+msgstr ""
+
+#: tmux_monitor.py:291
+msgctxt "command line"
+msgid "UI language, e.g. de or en (default: system locale)"
+msgstr ""
+
+#: tmux_monitor.py:294
+msgctxt "command line"
+msgid "--interval must be greater than 0"
+msgstr ""

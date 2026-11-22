@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=tmux Monitor
+Name[de]=tmux-Monitor
+Comment=Watch tmux sessions and NVIDIA GPU usage
+Comment[de]=tmux-Sitzungen und NVIDIA-GPU-Auslastung beobachten
+Exec=tmux-monitor
+Icon=utilities-system-monitor
+Terminal=false
+Categories=System;Monitor;
+Keywords=tmux;GPU;nvidia;monitor;session;
+StartupWMClass=tmux-monitor
