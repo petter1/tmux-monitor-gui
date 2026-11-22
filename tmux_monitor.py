@@ -706,9 +706,15 @@ class SettingsDialog(QDialog):
     def install(self):
         name = "tmux-monitor-install"
         run(["tmux", "kill-session", "-t", f"={name}"])
+        # Build in a cache dir with a fresh copy of the PKGBUILD, so makepkg
+        # leaves the checkout alone (no pkgver edits, no src/ or clones).
+        cache = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache")
+        build = cache / APP_ID / "build"
+        build.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(self.src / "PKGBUILD", build / "PKGBUILD")
         script = ("yay -Bi . ; echo; "
                   "read -rp 'Done – press Enter to close this window. '")
-        code, _out = run(["tmux", "new-session", "-d", "-s", name, "-c", str(self.src),
+        code, _out = run(["tmux", "new-session", "-d", "-s", name, "-c", str(build),
                           "bash", "-c", script])
         if code == 0:
             self.monitor.open_in_terminal(name)
